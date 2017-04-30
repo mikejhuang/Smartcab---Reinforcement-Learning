@@ -42,7 +42,7 @@ class LearningAgent(Agent):
         # If 'testing' is True, set epsilon and alpha to 0
 	self.trial+=1
         #self.epsilon=1-(self.trial-1)*self.tol
-	self.epsilon=math.exp(-0.0003*self.trial)
+	self.epsilon=math.exp(-0.001*self.trial)
 	#self.epsilon=math.cos(0.001*self.trial)
 	self.alpha=self.epsilon	
 	#self.alpha=math.exp(-0.0003*self.trial)
@@ -65,11 +65,7 @@ class LearningAgent(Agent):
         ########### 
         ## TO DO ##
         ###########
-        # Set 'state' as a tuple of relevant data for the agent        
-        #state = {}
-	#state['waypoint']=('action1','action2')
-	#state['inputs']
-	#state['deadline']
+        # Set 'state' as a tuple of relevant data for the agent
 	#number of possible states (2*4*4*4*3*30)	
 	state = (inputs['light'], inputs['oncoming'], inputs['right'], inputs['left'],
 waypoint)
@@ -154,17 +150,17 @@ waypoint)
         ###########
         # When learning, implement the value iteration update rule
         #   Use only the learning rate 'alpha' (do not use the discount factor 'gamma')
-	self.startlearn=False
-	if self.startlearn==True:		
-		qval=self.prevReward+self.get_maxQ(state)
-		self.Q[self.prevState][self.prevAction]=self.Q[self.prevState][self.prevAction]*(1-self.alpha)+qval*self.alpha
-	else:
-		self.Q[state][action]=reward        
-	self.prevState=state
-	self.prevReward=reward
-	self.prevAction=action
-	self.startlearn=True
-	
+	#self.startlearn=False
+	#if self.startlearn==True:		
+		#qval=self.prevReward+self.get_maxQ(state)
+		#self.Q[self.prevState][self.prevAction]=self.Q[self.prevState][self.prevAction]*(1-self.alpha)+qval*self.alpha
+	#else:
+	#	self.Q[state][action]=reward        
+	#self.prevState=state
+	#self.prevReward=reward
+	#self.prevAction=action
+	#self.startlearn=True
+	self.Q[state][action]=self.Q[state][action]*(1-self.alpha)+reward*self.alpha
 	return
 
 
@@ -201,7 +197,7 @@ def run():
     #    * epsilon - continuous value for the exploration factor, default is 1
     #    * alpha   - continuous value for the learning rate, default is 0.5
 
-    agent = env.create_agent(LearningAgent, learning=True, alpha=1, tol=0.05)
+    agent = env.create_agent(LearningAgent, learning=True, alpha=0.3, tol=0.05)
     
     ##############
     # Follow the driving agent
