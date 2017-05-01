@@ -26,6 +26,8 @@ class LearningAgent(Agent):
   	self.trial=0
 	self.maxQind=0
 	self.startlearn=False
+	self.testing=False
+
     def reset(self, destination=None, testing=False):
         """ The reset function is called at the beginning of each trial.
             'testing' is set to True if testing trials are being used
@@ -42,14 +44,18 @@ class LearningAgent(Agent):
         # If 'testing' is True, set epsilon and alpha to 0
 	self.trial+=1
         #self.epsilon=1-(self.trial-1)*self.tol
-	self.epsilon=math.exp(-0.001*self.trial)
-	#self.epsilon=math.cos(0.001*self.trial)
+	if self.trial<100:
+		self.epsilon=1
+	else:
+		self.epsilon=math.exp(-0.1*(self.trial-100))
+	#self.epsilon=math.cos(0.0005*self.trial)
 	self.alpha=self.epsilon	
 	#self.alpha=math.exp(-0.0003*self.trial)
 	#self.alpha=1-(self.trial-1)*0.001	
 	if testing==True:
 	     self.epsilon=0
 	     self.alpha=0
+	     self.testing=True
         return None
 
     def build_state(self):
@@ -67,7 +73,7 @@ class LearningAgent(Agent):
         ###########
         # Set 'state' as a tuple of relevant data for the agent
 	#number of possible states (2*4*4*4*3*30)	
-	state = (inputs['light'], inputs['oncoming'], inputs['right'], inputs['left'],
+	state = (inputs['light'], inputs['oncoming'], inputs['left'],
 waypoint)
         return state
 	
@@ -134,8 +140,16 @@ waypoint)
 					maxacts.append(acts)
 					#print "maxacts =",maxacts
 			action=random.choice(maxacts)
+		if self.testing==True:
+			if self.Q[state][self.next_waypoint]>0.0:
+				action=self.next_waypoint
+			elif state[0]=='red':
+				action=None
+			else:
+				action=self.maxQind	
 	else:
  		action=self.valid_actions[random.randint(0,3)]
+	
 	print "final chosen action is", action
         return action
 
@@ -160,7 +174,8 @@ waypoint)
 	#self.prevReward=reward
 	#self.prevAction=action
 	#self.startlearn=True
-	self.Q[state][action]=self.Q[state][action]*(1-self.alpha)+reward*self.alpha
+	if self.learning==True:
+		self.Q[state][action]=self.Q[state][action]*(1-self.alpha)+reward*self.alpha
 	return
 
 
@@ -197,7 +212,7 @@ def run():
     #    * epsilon - continuous value for the exploration factor, default is 1
     #    * alpha   - continuous value for the learning rate, default is 0.5
 
-    agent = env.create_agent(LearningAgent, learning=True, alpha=0.3, tol=0.05)
+    agent = env.create_agent(LearningAgent, learning=True, alpha=1, tol=0.05)
     
     ##############
     # Follow the driving agent
@@ -219,7 +234,7 @@ def run():
     # Flags:
     #   tolerance  - epsilon tolerance before beginning testing, default is 0.05 
     #   n_test     - discrete number of testing trials to perform, default is 0
-    sim.run(n_test=50)
+    sim.run(n_test=50, tolerance=0.05)
 
 
 if __name__ == '__main__':
